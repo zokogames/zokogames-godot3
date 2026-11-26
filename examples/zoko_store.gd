@@ -8,7 +8,9 @@ func _ready() -> void:
 	if not ZokoGames.is_store_available:
 		return  # hide your shop button on hosts without purchases
 
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("purchase_completed", self, "_on_purchase_completed")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("purchase_failed", self, "_on_purchase_failed")
 
 	var catalog = yield(ZokoGames.store_get_catalog_items_async(20), "completed")

@@ -2,13 +2,14 @@
 
 Godot 3.x addon (`addons/zokogames`) for HTML5 exports of Godot **3.3 to 3.6** (3.5 and 3.6 LTS are the targets). It has the same public API as the Godot 4 addon in `../godot`, one to one, so a project can move between them: same autoload name `ZokoGames`, same method names, same signals. The browser SDK `window.ZokoGames.SDK` is called through the Godot 3 `JavaScript` singleton; in the editor and on desktop a built-in simulator answers. Written in GDScript 1: no `await`, no lambdas, no typed arrays, no `@export`.
 
-Version 1.8.0 (written against the JavaScript SDK `@zoko/sdk` 1.8.0). Changes: [CHANGELOG.md](./CHANGELOG.md).
+Version 1.8.1 (written against the JavaScript SDK `@zoko/sdk` 1.8.0). Changes: [CHANGELOG.md](./CHANGELOG.md).
 Status: run headless in the official Godot 3.6.3 editor on macOS: the addon imports with zero errors and zero warnings (warnings treated as errors), enabling the plugin registers the autoload, every public method and signal behaves as documented in simulator mode, and the HTML5 export contains the bridge. Older 3.x releases and a browser run against the live portal are not verified; if something fails, send the engine version and the exact error to developer support.
 
 ## Versions
 
 | Wrapper | ZokoGames SDK |
 |---|---|
+| 1.8.1 | @zoko/sdk 1.8.0 |
 | 1.8.0 | @zoko/sdk 1.8.0 |
 | 1.7.1 | @zoko/sdk 1.7.0 |
 | 1.7.0 | @zoko/sdk 1.7.0 |

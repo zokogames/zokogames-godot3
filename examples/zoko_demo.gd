@@ -15,15 +15,23 @@ func _ready() -> void:
 		push_warning("ZokoGames init failed: %s" % res.error.code)
 		return
 	print("ZokoGames ready in ", ZokoGames.environment, " (simulated: ", ZokoGames.is_simulated, ")")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("settings_changed", self, "_on_settings_changed")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("auth_changed", self, "_on_auth_changed")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("ad_started", self, "_on_ad_started")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("ad_finished", self, "_on_ad_finished")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("ad_error", self, "_on_ad_error")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("room_message", self, "_on_room_message")
+	# warning-ignore:return_value_discarded
 	ZokoGames.connect("room_state", self, "_on_room_state")
 
 	var plays = int(ZokoGames.data_get_item("plays", "0")) + 1
+	# warning-ignore:return_value_discarded
 	ZokoGames.data_set_item("plays", str(plays))
 	print("Cloud save says this is play #", plays)
 

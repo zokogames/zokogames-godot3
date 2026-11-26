@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1 (2026-11-26)
+
+- Fix: the stop call for the IndexedDB mirror now also stops a mirror started by the template/shell option `ZOKO_MIRROR_INDEXEDDB` (before, it only stopped a mirror started through the bridge and returned ok without stopping the template's).
+
 ## 1.8.0 (2026-11-25)
 
 - Matches the JavaScript SDK 1.8.0 (additive). New `hide_all_banners(cb)` / `show_all_banners(cb)` (and `..._async`) for `banner.hideAllBanners` / `banner.showAllBanners`: hide or show every banner without clearing it.
