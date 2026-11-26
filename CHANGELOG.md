@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.0 (2026-11-25)
+
+- Matches the JavaScript SDK 1.8.0 (additive). New `hide_all_banners(cb)` / `show_all_banners(cb)` (and `..._async`) for `banner.hideAllBanners` / `banner.showAllBanners`: hide or show every banner without clearing it.
+- New `encrypt_score(score, key, cb, earned_at)` / `encrypt_score_async(score, key, earned_at)` for `user.encryptScore`: returns the base64 payload for `submit_score` (`userNotAuthenticated` for guests, `invalidArgument` for a bad score or key; `earned_at` in Unix ms seals the delayed copy, 0 is a live run). The simulator answers with a `simulated-score.` payload.
+- New `ZokoGames.game_id` / `get_game_id() -> String` for `game.gameId` (empty before init; the simulator returns `simulated-game`).
+- IndexedDB mirror for `user://`: the HTML shell option `ZOKO_MIRROR_INDEXEDDB` (`<script>window.ZOKO_MIRROR_INDEXEDDB = true;</script>` in Export > HTML > Head Include) restores the cloud copy before the engine starts and mirrors later writes (`data.mirrorIndexedDB`); new `stop_mirror_indexed_db()` stops it (no-op in the simulator).
+- The plugin now targets SDK 1.8.0; the wrapper constant `ZokoGames.VERSION` now reads `"1.8.0"`.
+
 ## 1.7.1 (2026-11-23)
 
 - Patch release, still targets the JavaScript SDK 1.7.0.

@@ -1,6 +1,6 @@
 extends Node
 ## Demo scene script (Godot 3.x). Attach to any Node. Keys: A midgame ad, R rewarded ad, G gameplay start/stop,
-## H happytime, U user, F friends, T token, S save, M room message and state, B buy the first store item.
+## H happytime, U user, F friends, T token, E encrypt a score, S save, M room message and state, B buy the first store item.
 ## Press G (gameplay start) before the first A: since SDK 1.6.4 a web build refuses a midgame ad with adCooldown until the game has called gameplay start (or 30 s of visible time passed).
 ## Ads pause the game and mute the Master bus on their own (ZokoGames.pause_game_during_ads / mute_audio_during_ads),
 ## so this node must keep running while paused: it sets pause_mode to PAUSE_MODE_PROCESS.
@@ -81,6 +81,9 @@ func _unhandled_key_input(event) -> void:
 		KEY_T:
 			var token = yield(ZokoGames.get_user_token_async(), "completed")
 			print(token.result if token.ok else token.error.code)
+		KEY_E:
+			var enc = yield(ZokoGames.encrypt_score_async(100.0, "demo-key"), "completed")
+			print(enc.result if enc.ok else enc.error.code)
 		KEY_S:
 			ZokoGames.set_game_context({"level": 3, "hard": true})
 			ZokoGames.track_order("xsolla", {"sku": "gems_100", "price": 0.99})

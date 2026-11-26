@@ -42,7 +42,7 @@ signal room_error(error)
 signal mirror_error(error)
 
 ## Wrapper version; matches the JavaScript SDK release it was written against.
-const VERSION = "1.7.0"
+const VERSION = "1.8.0"
 const BRIDGE_NAME = "ZokoBridge"
 const STATIC_BANNER_SIZES = ["728x90", "300x250", "320x50", "468x60", "320x100"]
 const DATA_LIMIT_BYTES = 1048576
@@ -103,6 +103,8 @@ var is_instant_join = false
 var is_offline = false
 ## True when this host offers purchases. Says nothing about sign-in.
 var is_store_available = false
+## Read-only id the portal sends at init (JS: game.gameId). Empty before init or when the portal does not send it.
+var game_id = ""
 ## Portal settings: `disableChat`, `muteAudio` and, from SDK 1.5.0, `kidsMode` (absent on older portals: read it with
 ## `settings.get("kidsMode", false)` and keep honouring `disableChat`).
 var settings = {"disableChat": false, "kidsMode": false, "muteAudio": false}
@@ -207,6 +209,7 @@ func _on_init_done(res) -> void:
 		is_instant_join = is_instant_multiplayer
 		is_offline = bool(r.get("isOffline", false))
 		is_store_available = bool(r.get("storeAvailable", false))
+		game_id = str(r.get("gameId", ""))
 		invite_params = r.get("inviteParams", {}) if r.get("inviteParams") != null else {}
 		is_initialized = true
 		_apply_portal_mute()
@@ -501,6 +504,20 @@ func clear_all_banners(callback = null) -> void:
 func clear_all_banners_async():
 	return _call_async("banner.clearAllBanners", {})
 
+## Hides every banner without clearing it (SDK 1.8.0).
+func hide_all_banners(callback = null) -> void:
+	_call("banner.hideAllBanners", {}, callback)
+
+func hide_all_banners_async():
+	return _call_async("banner.hideAllBanners", {})
+
+## Shows the banners hidden by hide_all_banners (SDK 1.8.0).
+func show_all_banners(callback = null) -> void:
+	_call("banner.showAllBanners", {}, callback)
+
+func show_all_banners_async():
+	return _call_async("banner.showAllBanners", {})
+
 
 # ---------------------------------------------------------------- Game
 
@@ -646,6 +663,14 @@ func submit_score(encrypted_score, score, callback = null) -> void:
 
 func submit_score_async(encrypted_score, score):
 	return _call_async("user.submitScore", {"encryptedScore": encrypted_score, "score": score})
+
+## SDK 1.8.0. Result is the base64 payload String to pass to submit_score (userNotAuthenticated for guests, invalidArgument for a bad score or key).
+## earned_at is the Unix time in ms that seals a delayed copy of the score; 0 means a live run.
+func encrypt_score(score, key, callback = null, earned_at = 0) -> void:
+	_call("user.encryptScore", {"score": score, "key": key, "earnedAt": earned_at}, callback)
+
+func encrypt_score_async(score, key, earned_at = 0):
+	return _call_async("user.encryptScore", {"score": score, "key": key, "earnedAt": earned_at})
 
 
 # ---------------------------------------------------------------- Store
@@ -946,6 +971,16 @@ func stop_mirror_local_storage() -> Dictionary:
 	return _call_sync("data.stopMirrorLocalStorage", {})
 
 
+## The game id the portal sent at init (JS: game.gameId). Empty before init.
+func get_game_id() -> String:
+	return game_id
+
+
+## Stop the IndexedDB mirror started by the HTML shell option ZOKO_MIRROR_INDEXEDDB (JS: the stop function of data.mirrorIndexedDB).
+func stop_mirror_indexed_db() -> Dictionary:
+	return _call_sync("data.stopMirrorIndexedDB", {})
+
+
 
 # ---------------------------------------------------------------- simulator
 
@@ -1076,6 +1111,8 @@ func _sim_sync(method, args) -> Dictionary:
 			return {"ok": true, "result": null}
 		"data.stopMirrorLocalStorage":
 			return {"ok": true, "result": null}
+		"data.stopMirrorIndexedDB":
+			return {"ok": true, "result": null}
 		"room.selfId":
 			return {"ok": true, "result": SIM_ROOM_SELF_ID}
 		"room.isHost":
@@ -1171,7 +1208,7 @@ func _sim(id, method, args) -> void:
 	if method == "init":
 		if bool(_sim_setting("disabled", false)):
 			_sim_ok(id, {"environment": "disabled", "isQaTool": false, "settings": _sim_settings(), "systemInfo": null,
-				"isUserAccountAvailable": false, "isInstantMultiplayer": false, "isOffline": false, "inviteParams": null, "storeAvailable": false})
+				"isUserAccountAvailable": false, "isInstantMultiplayer": false, "isOffline": false, "inviteParams": null, "storeAvailable": false, "gameId": ""})
 			return
 		_sim_log("init (environment local)")
 		_sim_ok(id, {
@@ -1184,7 +1221,7 @@ func _sim(id, method, args) -> void:
 			},
 			"isUserAccountAvailable": bool(_sim_setting("account_available", true)),
 			"isInstantMultiplayer": false, "isOffline": bool(_sim_setting("offline", false)), "inviteParams": null,
-			"storeAvailable": bool(_sim_setting("store_available", true)),
+			"storeAvailable": bool(_sim_setting("store_available", true)), "gameId": "simulated-game",
 		})
 		return
 	if bool(_sim_setting("disabled", false)):
@@ -1237,6 +1274,9 @@ func _sim(id, method, args) -> void:
 			_sim_ok(id)
 		"banner.clearAllBanners":
 			_sim_banner_at.clear()
+			_sim_ok(id)
+		"banner.hideAllBanners", "banner.showAllBanners":
+			_sim_log(method)
 			_sim_ok(id)
 		"game.gameplayStart", "game.gameplayStop", "game.loadingStart", "game.loadingStop", "game.hideInviteButton", "game.happytime", "game.leftRoom", "game.clearGameContext":
 			_sim_log(method)
@@ -1313,6 +1353,19 @@ func _sim(id, method, args) -> void:
 				_sim_ok(id, _sim_user())
 		"user.showAccountLinkPrompt":
 			_sim_ok(id, {"response": "yes" if _sim_logged_in else "no"})
+		"user.encryptScore":
+			var es = args.get("score")
+			if not _sim_logged_in:
+				_sim_err(id, "userNotAuthenticated", "No user is signed in")
+			elif (typeof(es) != TYPE_REAL and typeof(es) != TYPE_INT) or is_nan(float(es)) or is_inf(float(es)):
+				_sim_err(id, "invalidArgument", "score must be a finite number")
+			elif typeof(args.get("key")) != TYPE_STRING or str(args.get("key")) == "":
+				_sim_err(id, "invalidArgument", "key must be a non-empty string")
+			else:
+				var es_at = int(args.get("earnedAt", 0))
+				if es_at <= 0:
+					es_at = int(OS.get_unix_time()) * 1000
+				_sim_ok(id, "simulated-score." + Marshalls.utf8_to_base64("%s|%d" % [str(es), es_at]))
 		"user.submitScore":
 			# Like the JS SDK: encryptedScore must be a String (an empty one is accepted for boards without an encryption key)
 			# and score a finite number.
