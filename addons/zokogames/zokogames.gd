@@ -42,7 +42,7 @@ signal room_error(error)
 signal mirror_error(error)
 
 ## Wrapper version; matches the JavaScript SDK release it was written against.
-const VERSION = "1.8.0"
+const VERSION = "1.8.1"
 const BRIDGE_NAME = "ZokoBridge"
 const STATIC_BANNER_SIZES = ["728x90", "300x250", "320x50", "468x60", "320x100"]
 const DATA_LIMIT_BYTES = 1048576
